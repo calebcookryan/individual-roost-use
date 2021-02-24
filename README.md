@@ -9,7 +9,7 @@ Individuals within the same population can differ considerably. Inter-individual
 
 ---
 
-Guide to the files:
+***Guide to the files:***
 
 aic_code.Rmd
 - code for generating AIC values for comparing estimating models
@@ -22,3 +22,5 @@ data_wrannglign.Rmd
 
 both_use_reads.Rdata
 - file containing observations included in analysis 
+
+---
