@@ -1,0 +1,62 @@
+---
+title: "individual_roost_use_figure_code"
+author: "Caleb Ryan"
+date: "23/02/2021"
+output: html_document
+---
+
+This section of code should be run after individual_roost_use_aic 
+
+This code uses data from both_use_reads.RDATA available in this repository. 
+```{r}
+load("/Users/caleb/OneDrive - University of Waterloo/Research/code/reader_merge_code/rdata/join.rdata")
+```
+
+Requires packages 'sjPlot' , 'dplyr' , 'tidyr' , 'ggplot2'
+
+```{r}
+library(sjPlot)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(glmmTMB)
+library(ggpubr)
+```
+
+
+Code for creating sjPlots visualizing average individual variation from the mean
+```{r}
+pm_day = plot_model(day_roost_use_num_monthpit, type = "re", grid = FALSE , sort.est = "sort.all" , line.size = 0.5 , vline.color = "black",vline.size = 0.5, title = "", axis.title = "BLUP" , dot.size = 1.2)
+
+pm_total = plot_model(roost_use_num_woage, type = "re", grid = FALSE , sort.est = "sort.all" , line.size = 0.5 , vline.color = "black",vline.size = 0.5, title = "", axis.title = "BLUP" , dot.size = 1.2)
+
+# Start the graphics device
+pdf(file = "ryan_2020_fig_1.pdf", useDingbats = FALSE)
+
+# Plots
+pm_day_plot = pm_day +  labs(title = "") + ylab("Deviation from the Mean") + xlab("Individual ID") + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "grey"), axis.ticks.y=element_blank())
+
+pm_total_plot = pm_total +  labs(title = "") + ylab("Deviation from the Mean") + xlab("Individual ID") + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "grey"), axis.ticks.y=element_blank()) 
+
+ggarrange(pm_day_plot + rremove("x.title"), pm_total_plot,  
+          labels = c("A", "B"),
+          ncol = 1, nrow = 2)
+```
+
+
+Code for creating linear regression comparing the individual random effect estimates for both roost metrics
+
+```{r}
+visited_modeldata = get_model_data(roost_use_num_woage, type = "re")
+
+day_modeldata = get_model_data(day_roost_use_num_agepit , type = "re")
+
+visited_modeldatasub = subset(visited_modeldata , select = c("estimate" , "term"))
+
+day_modeldatasub = subset(day_modeldata , select = c("estimate" , "term"))
+
+regress_data = left_join(day_modeldatasub , visited_modeldatasub , by = "term" )
+
+summary(lm(regress_data$estimate.x ~ regress_data$estimate.y))
+```
+

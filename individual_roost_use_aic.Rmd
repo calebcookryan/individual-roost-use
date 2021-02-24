@@ -1,0 +1,162 @@
+---
+title: "individual_roost_use_aic"
+author: "Caleb Ryan"
+date: "23/02/2021"
+output: html_document
+---
+This code uses data from both_use_reads.RDATA available in this repository. 
+```{r}
+load("/Users/caleb/OneDrive - University of Waterloo/Research/code/reader_merge_code/rdata/join.rdata")
+```
+
+Load relevant packages:
+```{r}
+library(lme4)
+library(cAIC4)
+library(MuMIn)
+```
+
+Step 1 : Create the set of candidate models for the number of roosts visited by individuals each month
+```{r}
+roost_use_num_global <-lmer(num_box ~ num_reads + pitage + pityr + month + (1 | pit), data = both_use_reads , REML = FALSE)
+
+roost_use_num_global_worand <-lm(num_box ~ num_reads + pitage + pityr + month , data = both_use_reads)
+
+roost_use_num_woage <-lmer(num_box ~ num_reads + pityr + month + (1 | pit), data = both_use_reads , REML = FALSE)
+
+roost_use_num_womonth <-lmer(num_box ~ num_reads + pitage + pityr + (1 | pit), data = both_use_reads , REML = FALSE)
+
+roost_use_num_woyear <-lmer(num_box ~ num_reads + pitage  + month + (1 | pit), data = both_use_reads , REML = FALSE)
+
+roost_use_num_pitonly <-lmer(num_box ~ num_reads  + (1 | pit), data = both_use_reads , REML = FALSE)
+
+roost_use_num_monthonly <-lm(num_box ~ num_reads +  month , data = both_use_reads , REML = FALSE)
+
+roost_use_num_monthpit <- lmer(num_box ~ num_reads + month + (1|pit) , data = both_use_reads , REML = FALSE)
+
+roost_use_num_yearonly <- lm(num_box ~ num_reads + year , data = both_use_reads , REML = FALSE)
+
+roost_use_num_yearpit <- lmer(num_box ~ num_reads + year + (1|pit) , data = both_use_reads , REML = FALSE)
+
+roost_use_num_agepit <- lmer(num_box ~ num_reads + pitage + (1|pit) , data = both_use_reads , REML = FALSE)
+
+roost_use_num_ageonly <- lm(num_box ~ num_reads + pitage , data = both_use_reads , REML = FALSE)
+
+roost_use_num_agemonth <- lm(num_box ~ num_reads + pitage + month , data = both_use_reads , REML = FALSE)
+
+roost_use_null <- lm(num_box ~ 1 , data = both_use_reads)
+
+roost_use_num_reads <- lm(num_box ~ num_reads , data = both_use_reads)
+```
+
+
+Step 2: Using the function cAIC4 , create a table of cAIC values, log-liklihoods , deltacAIC values , and Akaike weights for the number of roosts visited
+```{r} 
+aa = cAIC(roost_use_num_global)
+ab = cAIC(roost_use_num_global_worand)
+ac = cAIC(roost_use_num_woage)
+ad = cAIC(roost_use_num_womonth)
+ae = cAIC(roost_use_num_woyear )
+af = cAIC(roost_use_num_pitonly)
+ag = cAIC(roost_use_num_monthonly)
+ah = cAIC(roost_use_num_monthpit)
+ai = cAIC(roost_use_num_yearonly)
+aj = cAIC(roost_use_num_yearpit)
+ak = cAIC(roost_use_num_agepit)
+al = cAIC(roost_use_num_ageonly)
+am = cAIC(roost_use_num_agemonth)
+
+logL = c(aa[1] , ab[1] , ac[1] , ad[1] , ae[1] , af[1] , ag[1] , ah[1] , ai[1] , aj[1] , ak[1] , al[1] , am[1])
+df  = c(aa[2] , ab[2] , ac[2] , ad[2] , ae[2] , af[2] , ag[2] , ah[2] , ai[2] , aj[2] , ak[2] , al[2] , am[2])
+caic =c(aa$caic , ab$caic , ac$caic , ad$caic , ae$caic , af$caic , ag$caic , ah$caic , ai$caic , aj$caic , ak$caic , al$caic , am$caic)
+delta =c(aa$caic - 370.7577 , ab$caic - 370.7577 , ac$caic - 370.7577 , ad$caic - 370.7577 , ae$caic - 370.7577 , af$caic - 370.7577 , ag$caic - 370.7577 , ah$caic - 370.7577 , ai$caic - 370.7577 , aj$caic - 370.7577 , ak$caic - 370.7577 , al$caic - 370.7577 , am$caic - 370.7577)
+
+l = exp(-0.5*delta)
+sumt = sum(l)
+w = l/sumt
+
+
+
+
+total_roosts = matrix(c(logL , df , caic , w , delta , l) , ncol = 6)
+colnames(total_roosts) = c("log(L)" , "df" , "cAIC" , "w" , "delta" , 'likelihood')
+rownames(total_roosts) = c("age + year + month + (1|Individual)" , "age + year + month" , "year + month + (1|Individual)" , "age + year + (1|Individual)" , "age + month + (1|Individual)" , "(1|Individual)" , "month" , "month + (1|Individual)" , "year" , "year + 1|Individual" , "age + 1|Individual" , "age" , "age + month")
+write.table(total_roosts, 'clipboard', sep='\t')
+
+total_roosts
+```
+
+
+Step 3 : Create the set of candidate models for the number of unique day roosts by individuals each month
+
+```{r}
+day_roost_use_num_global <-lmer(num_day_box ~ num_day + pitage + pityr + month + (1 | pit), data = both_use_reads , REML = FALSE)
+
+day_roost_use_num_global_worand <-lm(num_day_box ~ num_day + pitage + pityr + month , data = both_use_reads)
+
+day_roost_use_num_woage <-lmer(num_day_box ~ num_day + pityr + month + (1 | pit), data = both_use_reads , REML = FALSE)
+
+day_roost_use_num_womonth <-lmer(num_day_box ~ num_day + pitage + pityr + (1 | pit), data = both_use_reads , REML = FALSE)
+
+day_roost_use_num_woyear <-lmer(num_day_box ~ num_day + pitage  + month + (1 | pit), data = both_use_reads , REML = FALSE)
+
+day_roost_use_num_pitonly <-lmer(num_day_box ~ num_day  + (1 | pit), data = both_use_reads , REML = FALSE)
+
+day_roost_use_num_monthonly <-lm(num_day_box ~ num_day +  month , data = both_use_reads , REML = FALSE)
+
+day_roost_use_num_monthpit <- lmer(num_day_box ~ num_day + month + (1|pit) , data = both_use_reads , REML = FALSE)
+
+day_roost_use_num_yearonly <- lm(num_day_box ~ num_day + year , data = both_use_reads , REML = FALSE)
+
+day_roost_use_num_yearpit <- lmer(num_day_box ~ num_day + year + (1|pit) , data = both_use_reads , REML = FALSE)
+
+day_roost_use_num_agepit <- lmer(num_day_box ~ num_day + pitage + (1|pit) , data = both_use_reads , REML = FALSE)
+
+day_roost_use_num_ageonly <- lm(num_day_box ~ num_day + pitage , data = both_use_reads , REML = FALSE)
+
+day_roost_use_num_agemonth <- lm(num_day_box ~ num_day + pitage + month , data = both_use_reads , REML = FALSE)
+
+```
+
+Step 4: Using the function cAIC4 , create a table of cAIC values, log-liklihoods , deltacAIC values , and Akaike weights for the number of day roosts used
+
+```{r} 
+aaa = cAIC(day_roost_use_num_global)
+aab = cAIC(day_roost_use_num_global_worand)
+aac = cAIC(day_roost_use_num_woage)
+aad = cAIC(day_roost_use_num_womonth)
+aae = cAIC(day_roost_use_num_woyear)
+aaf = cAIC(day_roost_use_num_pitonly)
+aag = cAIC(day_roost_use_num_monthonly)
+aah = cAIC(day_roost_use_num_monthpit)
+aai = cAIC(day_roost_use_num_yearonly)
+aaj = cAIC(day_roost_use_num_yearpit)
+aak = cAIC(day_roost_use_num_agepit)
+aal = cAIC(day_roost_use_num_ageonly)
+aam = cAIC(day_roost_use_num_agemonth)
+
+dlogL = c(aaa[1] , aab[1] , aac[1] , aad[1] , aae[1] , aaf[1] , aag[1] , aah[1] , aai[1] , aaj[1] , aak[1] , aal[1] ,aam[1])
+ddf  = c(aaa[2] , aab[2] , aac[2] , aad[2] , aae[2] , aaf[2] , aag[2] , aah[2] , aai[2] ,aaj[2] , aak[2] , aal[2] , aam[2])
+dcaic =c(aaa$caic , aab$caic , aac$caic , aad$caic , aae$caic , aaf$caic , aag$caic , aah$caic , aai$caic , aaj$caic , aak$caic , aal$caic , aam$caic)
+ddelta =c(aaa$caic - 273.2979 , aab$caic - 273.2979 , aac$caic - 273.2979 , aad$caic - 273.2979 , aae$caic - 273.2979 , aaf$caic - 273.2979 , aag$caic - 273.2979 , aah$caic - 273.2979 , aai$caic - 273.2979 , aaj$caic - 273.2979 , aak$caic - 273.2979 , aal$caic - 273.2979 , aam$caic - 273.2979)
+
+dl = exp(-0.5*ddelta)
+dsumt = sum(dl)
+dw = dl/dsumt
+
+
+nrow(both_use_reads)
+
+total_day_roosts = matrix(c(dlogL , ddf , dcaic , dw , ddelta , dl) , ncol = 6)
+colnames(total_day_roosts) = c("log(L)" , "df" , "cAIC" , "w" , "delta" , 'likelihood')
+rownames(total_day_roosts) = c("age + year + month + (1|Individual)" , "age + year + month" , "year + month + (1|Individual)" , "age + year + (1|Individual)" , "age + month + (1|Individual)" , "(1|Individual)" , "month" , "month + (1|Individual)" , "year" , "year + 1|Individual" , "age + 1|Individual" , "age" , "age + month")
+total_day_roosts
+write.table(total_day_roosts, 'clipboard', sep='\t')
+```
+
+Step 3: Calculate the marginal and conditional r2 values for the estimated best model
+```{r}
+r.squaredGLMM(roost_use_num_woage)
+r.squaredGLMM(day_roost_use_num_monthpit)
+```
+
